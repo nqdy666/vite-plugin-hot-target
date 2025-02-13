@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-hot-target",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "packageManager": "pnpm@9.14.2",
   "description": "Hot update target without restarting Vite",
   "author": "nianqin",
