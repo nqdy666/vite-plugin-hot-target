@@ -72,12 +72,19 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
     fileContent = fileContent.replace(/export default/g, 'module.exports.default =')
     fileContent = fileContent.replace(/export const\s*/g, 'exports.')
 
-    const script = new vm.Script(fileContent)
     const module = { exports: {} }
-    const require = (modulePath: string) => {
-      return require(modulePath)
+
+    try {
+      const script = new vm.Script(fileContent)
+      const require = (modulePath: string) => {
+        return require(modulePath)
+      }
+      script.runInNewContext({ module, exports: module.exports, require })
     }
-    script.runInNewContext({ module, exports: module.exports, require })
+    catch (e) {
+      console.error(e)
+    }
+
     const options = module.exports as TARGET_OPTION
     return options
   }
