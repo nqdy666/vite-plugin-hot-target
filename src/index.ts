@@ -131,7 +131,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
                       options.target = targetTmp
                       target = targetTmp
                       if (log) {
-                        console.log(`target changed[${context}]`, defaultTarget)
+                        console.log(`target changed[${context}]`, target)
                       }
                     }
                   }
