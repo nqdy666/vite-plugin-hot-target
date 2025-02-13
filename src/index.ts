@@ -23,6 +23,11 @@ export interface VitePluginHotTargetOptions {
    */
   emptyChange?: boolean
   /**
+   * target的值为空的时候是否触发
+   * @default false
+   */
+  targetWhenEmpty?: string
+  /**
    * Array of files to watch
    */
   targetFile?: string | string[]
@@ -50,6 +55,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
   const {
     enable = true,
     emptyChange = false,
+    targetWhenEmpty = 'https://127.0.0.1',
     log = true,
     targetFile = '',
   } = options
@@ -121,7 +127,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
           // @ts-nocheck
           if (opts && ((opts as any).useVitePluginHotTarget || !opts.target)) {
             const originConfigure = opts.configure
-            opts.target = defaultTarget
+            opts.target = defaultTarget || targetWhenEmpty
             target = defaultTarget
             opts.configure = (proxy, options) => {
               if (log) {
@@ -133,9 +139,9 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
                   const targetTmp = data.default
                   if (targetTmp || (!targetTmp && emptyChange)) {
                     if (targetTmp !== target) {
-                      const urlInfo = url.parse(targetTmp)
+                      const urlInfo = url.parse(targetTmp || targetWhenEmpty)
                       Object.assign(t, urlInfo)
-                      options.target = targetTmp
+                      options.target = targetTmp || targetWhenEmpty
                       target = targetTmp
                       if (log) {
                         console.log(`target changed[${context}]`, target)
