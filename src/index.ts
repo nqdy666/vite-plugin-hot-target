@@ -112,7 +112,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
             opts = { target: opts, changeOrigin: true }
           }
           // @ts-nocheck
-          if (opts && (opts.useVitePluginHotTarget || !opts.target)) {
+          if (opts && ((opts as any).useVitePluginHotTarget || !opts.target)) {
             const originConfigure = opts.configure
             opts.target = defaultTarget
             target = defaultTarget
