@@ -135,6 +135,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
               }
               proxy.on('start', (req, res, t) => {
                 if (targetFileChange) {
+                  targetFileChange = false
                   const data = getTargetInfo()
                   const targetTmp = data.default
                   if (targetTmp || (!targetTmp && emptyChange)) {
