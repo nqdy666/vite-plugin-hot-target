@@ -27,9 +27,7 @@ import ViteHotTarget from 'vite-plugin-hot-target'
 export default {
   plugins: [
     ViteHotTarget({
-      restart: [
-        'target.[jt]s',
-      ]
+      targetFile: 'target.[jt]s',
     })
   ],
 }
