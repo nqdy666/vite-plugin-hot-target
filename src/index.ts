@@ -13,7 +13,7 @@ export interface VitePluginHotTargetOptions {
    */
   enable?: boolean
   /**
-   * 是否启用
+   * 是否打印日志
    * @default true
    */
   log?: boolean
@@ -23,14 +23,14 @@ export interface VitePluginHotTargetOptions {
    */
   emptyChange?: boolean
   /**
-   * target的值为空的时候是否触发
+   * target的值为空的时候的默认值
    * @default false
    */
   targetWhenEmpty?: string
   /**
-   * Array of files to watch
+   * 需要监听的target文件
    */
-  targetFile?: string | string[]
+  targetFile?: string
 }
 
 let i = 0
@@ -96,7 +96,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
   }
 
   return {
-    name: `vite-plugin-target:${i++}`,
+    name: `vite-plugin-hot-target:${i++}`,
     apply: 'serve',
     config(c) {
       if (!enable)
