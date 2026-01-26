@@ -35,6 +35,10 @@ export interface VitePluginHotTargetOptions {
    * hotTarget前缀
    */
   hotTargetPrefix?: string
+  /**
+   * ws目前支持不完全，开启后可以监听websocket的连接，需要二次请求才会生效
+   */
+  wsEnable: boolean
 }
 
 let i = 0
@@ -64,6 +68,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
     log = true,
     targetFile = '',
     hotTargetPrefix = 'hotTargetPlugin:',
+    wsEnable = false,
   } = options
 
   let root = process.cwd()
@@ -156,7 +161,8 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
                 if (log) {
                   console.log(`target[${context}]`, targetMap[targetKey])
                 }
-                proxy.on('start', (req, res, t) => {
+
+                function updateOptionsTarget(option: any) {
                   if (!fileChangeForContenxt[context]) {
                     fileChangeForContenxt[context] = true
                     const data = getTargetInfo()
@@ -164,7 +170,7 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
                     if (targetTmp || (!targetTmp && emptyChange)) {
                       if (targetTmp !== targetMap[targetKey]) {
                         const urlInfo = url.parse(targetTmp || targetWhenEmpty)
-                        Object.assign(t, urlInfo)
+                        Object.assign(option, urlInfo)
                         options.target = targetTmp || targetWhenEmpty
                         targetMap[targetKey] = targetTmp
                         if (log) {
@@ -173,7 +179,19 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
                       }
                     }
                   }
+                }
+                // https://github.com/sagemathinc/http-proxy-3/blob/main/lib/http-proxy/passes/web-incoming.ts
+                // 具体参考这里发出来的事件
+                proxy.on('start', (req, res, option) => {
+                  updateOptionsTarget(option)
                 })
+                if (opts.ws && wsEnable) {
+                  // https://github.com/sagemathinc/http-proxy-3/blob/main/lib/http-proxy/passes/ws-incoming.ts
+                  // 这里没有在 common.setupOutgoing和proto.request 前暴露修改option的能力
+                  proxy.on('proxyReqWs', (proxyReq, req, socket, option) => {
+                    updateOptionsTarget(option)
+                  })
+                }
                 if (typeof originConfigure === 'function') {
                   return originConfigure(proxy, options)
                 }
