@@ -7,11 +7,16 @@ export default defineConfig({
       '/api': {
         target: '',
       },
+      // '/websocket': {
+      //   target: 'hotTargetPlugin:wssTarget',
+      //   ws: true,
+      // },
     },
   },
   plugins: [
     VitePluginHotTarget({
       targetFile: 'target.js',
+      // wsEnable: true,
     }),
   ],
 })
