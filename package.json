@@ -46,7 +46,7 @@
     "@antfu/ni": "^0.23.1",
     "@types/debug": "^4.1.12",
     "@types/micromatch": "^4.0.9",
-    "@types/node": "^22.10.0",
+    "@types/node": "^22.19.7",
     "bumpp": "^9.8.1",
     "eslint": "^9.15.0",
     "rollup": "^4.27.4",
