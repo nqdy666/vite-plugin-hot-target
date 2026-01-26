@@ -31,6 +31,10 @@ export interface VitePluginHotTargetOptions {
    * 需要监听的target文件
    */
   targetFile?: string
+  /**
+   * hotTarget前缀
+   */
+  hotTargetPrefix?: string
 }
 
 let i = 0
@@ -49,6 +53,7 @@ function toArray<T>(arr: T | T[] | undefined): T[] {
 
 interface TARGET_OPTION {
   default: string
+  [key: string]: string
 }
 
 function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
@@ -58,13 +63,15 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
     targetWhenEmpty = 'https://127.0.0.1',
     log = true,
     targetFile = '',
+    hotTargetPrefix = 'hotTargetPlugin:',
   } = options
 
   let root = process.cwd()
   let targetGlobs: string[] = []
 
-  let targetFileChange = false
-  let target: string = ''
+  // let targetFileChange = false
+  const targetMap: Record<string, string> = {}
+  const fileChangeForContenxt: Record<string, boolean> = {}
 
   function getTargetInfo(): TARGET_OPTION {
     if (!targetGlobs[0]) {
@@ -116,7 +123,8 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
 
         targetGlobs = toArray(targetFile).map(i => path.posix.join(root, i))
         // console.log('targetGlobs', config.server.proxy)
-        const defaultTarget = getTargetInfo().default
+        const targetConfigInfo = getTargetInfo()
+        const defaultTarget = targetConfigInfo.default
 
         const proxyOptions = config.server.proxy || {}
         Object.keys(proxyOptions).forEach((context) => {
@@ -125,35 +133,51 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
             opts = { target: opts, changeOrigin: true }
           }
           // @ts-nocheck
-          if (opts && ((opts as any).useVitePluginHotTarget || !opts.target)) {
+          if (opts && ((opts as any).useVitePluginHotTarget || !opts.target || opts.target.toString().startsWith(hotTargetPrefix))) {
             const originConfigure = opts.configure
-            opts.target = defaultTarget || targetWhenEmpty
-            target = defaultTarget
-            opts.configure = (proxy, options) => {
-              if (log) {
-                console.log(`target[${context}]`, defaultTarget)
+
+            let targetKey = ''
+
+            if (!opts.target) {
+              opts.target = defaultTarget || targetWhenEmpty
+              targetKey = 'default'
+              targetMap[targetKey] = defaultTarget
+            }
+            else if (opts.target.toString().startsWith(hotTargetPrefix)) {
+              targetKey = opts.target.toString().replace(hotTargetPrefix, '')
+              if (targetKey) {
+                opts.target = targetConfigInfo[targetKey] || targetWhenEmpty
+                targetMap[targetKey] = targetConfigInfo[targetKey]
               }
-              proxy.on('start', (req, res, t) => {
-                if (targetFileChange) {
-                  targetFileChange = false
-                  const data = getTargetInfo()
-                  const targetTmp = data.default
-                  if (targetTmp || (!targetTmp && emptyChange)) {
-                    if (targetTmp !== target) {
-                      const urlInfo = url.parse(targetTmp || targetWhenEmpty)
-                      Object.assign(t, urlInfo)
-                      options.target = targetTmp || targetWhenEmpty
-                      target = targetTmp
-                      if (log) {
-                        console.log(`target changed[${context}]`, target)
+            }
+
+            if (targetKey) {
+              opts.configure = (proxy, options) => {
+                if (log) {
+                  console.log(`target[${context}]`, targetMap[targetKey])
+                }
+                proxy.on('start', (req, res, t) => {
+                  if (!fileChangeForContenxt[context]) {
+                    fileChangeForContenxt[context] = true
+                    const data = getTargetInfo()
+                    const targetTmp = data[targetKey]
+                    if (targetTmp || (!targetTmp && emptyChange)) {
+                      if (targetTmp !== targetMap[targetKey]) {
+                        const urlInfo = url.parse(targetTmp || targetWhenEmpty)
+                        Object.assign(t, urlInfo)
+                        options.target = targetTmp || targetWhenEmpty
+                        targetMap[targetKey] = targetTmp
+                        if (log) {
+                          console.log(`target changed[${context}]`, targetMap[targetKey])
+                        }
                       }
                     }
                   }
-                }
+                })
                 if (typeof originConfigure === 'function') {
                   return originConfigure(proxy, options)
                 }
-              })
+              }
             }
           }
         })
@@ -173,7 +197,10 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
             // if (log) {
             //   console.log(`target file change`, file)
             // }
-            targetFileChange = true
+            // targetFileChange = true
+            Object.keys(fileChangeForContenxt).forEach((key) => {
+              fileChangeForContenxt[key] = false
+            })
           }
         }
       }

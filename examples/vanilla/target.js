@@ -1,3 +1,3 @@
-const target = 'https://example.com'
+const target = 'http://example.com'
 
 export default target
