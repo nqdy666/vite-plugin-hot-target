@@ -38,7 +38,7 @@ export interface VitePluginHotTargetOptions {
   /**
    * ws目前支持不完全，开启后可以监听websocket的连接，需要二次请求才会生效
    */
-  wsEnable: boolean
+  wsEnable?: boolean
 }
 
 let i = 0
