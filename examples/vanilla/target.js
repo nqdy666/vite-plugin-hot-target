@@ -1,4 +1,5 @@
-const target = 'http://example.com'
+const target = 'http://localhost:5000'
+// const target = 'http://localhost:5001'
 
 // export const defaultTarget = target
 // export const wssTarget = target.replace('https', 'wss').replace('http', 'ws')
