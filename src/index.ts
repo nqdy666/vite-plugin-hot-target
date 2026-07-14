@@ -2,7 +2,6 @@ import type { Plugin } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import url from 'node:url'
 import vm from 'node:vm'
 import micromatch from 'micromatch'
 
@@ -169,8 +168,8 @@ function VitePluginHotTarget(options: VitePluginHotTargetOptions = {}): Plugin {
                     const targetTmp = data[targetKey]
                     if (targetTmp || (!targetTmp && emptyChange)) {
                       if (targetTmp !== targetMap[targetKey]) {
-                        const urlInfo = url.parse(targetTmp || targetWhenEmpty)
-                        Object.assign(option, urlInfo)
+                        const urlInfo = new URL(targetTmp || targetWhenEmpty)
+                        Object.assign(option, {protocol:urlInfo.protocol,host:urlInfo.host,hostname:urlInfo.hostname,port:urlInfo.port,pathname:urlInfo.pathname,search:urlInfo.search,href:urlInfo.href})
                         options.target = targetTmp || targetWhenEmpty
                         targetMap[targetKey] = targetTmp
                         if (log) {
